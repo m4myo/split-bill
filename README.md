@@ -1,55 +1,45 @@
-# Split Bill
+# SplitBill
 
-Bill-split MVP: Google login, generate a bill request (amount, up to 20 people, event name/date,
-currency default USD, required bank payment details), share a public URL, track
-Received/Unreceived as owner, close or delete requests, and print any bill as PDF.
+Split the bill and notify those who owe you. Create a bill request, share a link, and track who has paid — no login needed for payers.
 
-Stack: Next.js (App Router) + Firebase (Auth + Firestore).
+![SplitBill landing page](assets/landing%20page.png)
 
-## 1. Firebase setup (required once)
+## What SplitBill does
 
-1. Go to the [Firebase Console](https://console.firebase.google.com/), create a project.
-2. **Authentication > Sign-in method**: enable **Google**.
-3. **Firestore Database**: Create database (production mode is fine), then go to **Rules** tab
-   and paste the contents of `firestore.rules` in this repo. Publish.
-4. **Project settings > Your apps > Web app**: register a web app, copy the config values.
-5. Locally:
-   ```bash
-   copy .env.example .env.local
-   # fill in the 6 NEXT_PUBLIC_FIREBASE_* values
-   npm run dev
-   ```
-6. Open http://localhost:3000.
+- **Google sign-in** — owners sign in in one click; payers never need an account.
+- **Shareable bill links** — every request gets a public URL anyone can open.
+- **Equal splitting** — the total is divided automatically; each person's share is shown.
+- **Track payments** — tap to mark people Received or Unreceived and watch progress live.
+- **Close or delete** — close a finished request or permanently delete one.
+- **Print any bill** — open a clean print view of a bill as PDF.
 
-## 2. Developing
+## Generate Bill Request
 
-```bash
-npm install
-npm run dev
-npm run build
-npm run lint
-```
+![Generate Bill Request form](assets/bill%20request%201.png)
 
-## 3. How it works
+Fill in the details and press **Generate Bill Request**:
 
-- `/` — landing + Google sign-in.
-- `/create` — protected form. Amount is split equally (remainder cents go to the first people
-  so the sum always matches). Per-person `amountOwed` is stored, so a future custom-amount
-  editor needs no migration. Bank payment details are required (name, digits-only account
-  number, optional notes). No expiry in this version.
-- `/success/[id]` — confirmation with summary + copyable share link after Generate.
-- `/b/[id]` — public payer page, identical for everyone: hero card (total + per-person),
-  select-your-name chips with a personalized share banner, and a Transfer-to card.
-  Closed bills show a closed notice; unknown IDs show not found. `?print=1` auto-opens print.
-- `/my-bills` — owner dashboard (realtime): per-bill progress bar, clickable Received chips,
-  and per-row **View link / Close / PDF / Delete** (Delete is permanent, with confirmation).
-  Opening it also strips the retired `expireOn` field from old bills (one-time migration).
+- **Amount paid** — the total bill, up to 2 decimal places.
+- **Currency** — default USD, other major currencies available.
+- **Total number of people (max 20)** — adds a name field per person; each field can be removed with the × button.
+- **Name of the Event** and **Date of the Event**.
+- **Payment information** — Bank Name, digits-only Account Number, and optional Notes, so payers know exactly where to transfer.
 
-## 4. Rules
+## Successful Generation
 
-`firestore.rules`: public read; create/update/delete **owner-only**. Create requires
-`paymentMethod == 'bank'` with a name and digits-only account number.
+![Bill request created](assets/bill%20requested%20generated.png)
 
-## 5. Design
+Right after generating, you get a confirmation with the event summary and a **copyable share link** to send to everyone.
 
-Light-only theme (Plus Jakarta Sans; indigo `#6366F1` on `#F8F7FF`). Dark variants are disabled globally.
+![Bill request detail](assets/bill%20request%20detail.png)
+
+Anyone opening the link sees the bill at a glance — total and per-person amounts — then taps **their name** to see their personal share and the bank details to transfer to. No account needed.
+
+## My Bills
+
+![My Bills list](assets/bill%20request%20list.png)
+
+Your dashboard lists every request with its total, per-person amount, and a **payment progress bar**. Tap a person's chip to toggle Received/Unreceived. Each bill offers **View link** (open its page), **Close** (visitors then see a closed notice), **PDF** (clean print view), and **Delete** (permanent, with confirmation).
+
+---
+© 2026 Myo Pyae Sone. All rights reserved.
