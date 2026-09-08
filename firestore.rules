@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /bills/{billId} {
+      // Public read: anyone with the link can view the bill page.
+      allow read: if true;
+
+      // Only signed-in users can create; owner must match auth uid.
+      // Bank payment info is required (QR arrives in a later version).
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.amountTotal is int
+        && request.resource.data.amountTotal > 0
+        && request.resource.data.people.size() >= 1
+        && request.resource.data.people.size() <= 20
+        && request.resource.data.status == 'active'
+        && request.resource.data.paymentMethod == 'bank'
+        && request.resource.data.bankInfo.bankName is string
+        && request.resource.data.bankInfo.bankName.size() >= 1
+        && request.resource.data.bankInfo.accountNumber is string
+        && request.resource.data.bankInfo.accountNumber.matches('^[0-9]+$');
+
+      // Only the owner can update (status toggles, close) or delete their bill.
+      // OwnerUid can never change hands.
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.ownerUid
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.ownerUid;
+    }
+  }
+}
